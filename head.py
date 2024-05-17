@@ -80,10 +80,10 @@ def head(input_video_path="./input_video.mp4", output_video_path="./output_video
             y_down = max(y_down, y2)
 
             if y2 < begin_Y2:
-                cv2.line(frame, (int(x2 - 60), int(y2)), (int(x2 + 60), int(y2)), (0, 0, 255),
+                cv2.line(frame, (int(begin_X2 - 60), int(y2)), (int(begin_X2 + 60), int(y2)), (0, 0, 255),
                          thickness=2)  # 在 x 坐标处画一条红色的水平线
             else:
-                cv2.line(frame, (int(x2 - 60), int(y2)), (int(x2 + 60), int(y2)), (0, 255, 0),
+                cv2.line(frame, (int(begin_X2 - 60), int(y2)), (int(begin_X2 + 60), int(y2)), (0, 255, 0),
                          thickness=2)  # 在 x 坐标处画一条绿色的水平线
             cv2.line(frame, (int(begin_X2 - 100), int(begin_Y2)), (int(begin_X2 + 100), int(begin_Y2)), (0, 255, 255),
                      thickness=2)

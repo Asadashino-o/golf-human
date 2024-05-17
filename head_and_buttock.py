@@ -171,10 +171,10 @@ def main(input_video_path, output_video_path, f_idx, interval):
 
             # 在图像上绘制线条
             if x1 > begin_X1:
-                cv2.line(frame, (int(x1), int(y1 - 60)), (int(x1), int(y1 + 60)), (0, 0, 255),
+                cv2.line(frame, (int(x1), int(begin_Y1 - 60)), (int(x1), int(begin_Y1 + 60)), (0, 0, 255),
                          thickness=2)  # 在 y 坐标处画一条红色的水平线
             else:
-                cv2.line(frame, (int(x1), int(y1 - 60)), (int(x1), int(y1 + 60)), (0, 255, 0),
+                cv2.line(frame, (int(x1), int(begin_Y1 - 60)), (int(x1), int(begin_Y1 + 60)), (0, 255, 0),
                          thickness=2)  # 在 y 坐标处画一条绿色的水平线
             cv2.line(frame, (int(begin_X1), int(begin_Y1 - 100)), (int(begin_X1), int(begin_Y1 + 100)), (0, 255, 255),
                      thickness=2)
@@ -182,10 +182,10 @@ def main(input_video_path, output_video_path, f_idx, interval):
             draw_x_rectangle(int(begin_Y1), int(x_left), int(begin_X1), colored_region, color=1)  # 画左边的距离
 
             if y2 < begin_Y2:
-                cv2.line(frame, (int(x2 - 60), int(y2)), (int(x2 + 60), int(y2)), (0, 0, 255),
+                cv2.line(frame, (int(begin_X2 - 60), int(y2)), (int(begin_X2 + 60), int(y2)), (0, 0, 255),
                      thickness=2)  # 在 x 坐标处画一条红色的水平线
             else:
-                cv2.line(frame, (int(x2 - 60), int(y2)), (int(x2 + 60), int(y2)), (0, 255, 0),
+                cv2.line(frame, (int(begin_X2 - 60), int(y2)), (int(begin_X2 + 60), int(y2)), (0, 255, 0),
                          thickness=2)  # 在 x 坐标处画一条绿色的水平线
             cv2.line(frame, (int(begin_X2 - 100), int(begin_Y2)), (int(begin_X2 + 100), int(begin_Y2)), (0, 255, 255),
                      thickness=2)
