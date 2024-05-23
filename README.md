@@ -1,7 +1,4 @@
 # golf-human-detection
-<a target="_blank" href="https://colab.research.google.com/drive/1x77dESn7EGPCqjKdQ1sJJhNu0Cf-5Gpt?usp=sharing">
-  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-</a>
 
 ![](https://github.com/Asadashino-o/golf-human/blob/main/sample_videos/example.gif)
 
@@ -56,7 +53,7 @@ python main.py -i sample_videos/input_video.mp4 -o sample_videos/output_video.mp
 
 The script processes the input video and generates an output video with the draw-line format.
 
-####  Gradio version
+####  Web Interface
 You can also use the flask to run the web with an interface. To do so, run the following command:
 ```bash
 cd flaskk
