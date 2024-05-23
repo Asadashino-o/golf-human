@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Upload and Process</title>
+    <style>
+        #progress-wrapper {
+            display: none;
+        }
+        #progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: green;
+        }
+        #uploaded-video {
+            display: none;
+        }
+        #processed-video-wrapper {
+            display: none;
+        }
+        #server-output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload and Process Video</h1>
+    <form id="upload-form" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept="video/*" id="file-input">
+        <button type="submit">Upload and Analyze</button>
+        <button type="button" onclick="resetPage()">Reset</button>
+    </form>
+
+    <h2>Original Video</h2>
+    <video id="uploaded-video" width="1080" height="720" controls>
+        <source id="uploaded-video-source" src="" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div id="progress-wrapper">
+        <h2>Processing...</h2>
+        <div id="progress-bar"></div>
+    </div>
+
+    <h2>Processed Video</h2>
+    <div id="processed-video-wrapper">
+        <video id="processed-video" width="1080" height="720" controls>
+            <source id="processed-video-source" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <br>
+        <a id="download-link" href="" download>Download Processed Video</a>
+    </div>
+
+<!--     <div id="server-output">-->
+<!--        <h2>Server Output</h2>-->
+<!--        <pre id="message-container"></pre>-->
+<!--    </div>-->
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const uploadedVideo = document.getElementById('uploaded-video');
+        const uploadedVideoSource = document.getElementById('uploaded-video-source');
+        const form = document.getElementById('upload-form');
+        const progressWrapper = document.getElementById('progress-wrapper');
+        const progressBar = document.getElementById('progress-bar');
+        const processedVideoWrapper = document.getElementById('processed-video-wrapper');
+        const processedVideo = document.getElementById('processed-video');
+        const processedVideoSource = document.getElementById('processed-video-source');
+        const downloadLink = document.getElementById('download-link');
+        // const messageContainer = document.getElementById('message-container');
+
+         // Function to fetch message from the server
+        // const fetchMessage = () => {
+        //     fetch('/get_message')
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             messageContainer.textContent = data.message;
+        //         })
+        //         .catch(error => {
+        //             console.error('Error:', error);
+        //         });
+        // };
+        //
+        // // Fetch message every 5 seconds
+        // setInterval(fetchMessage, 5000);
+
+        fileInput.onchange = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                uploadedVideoSource.src = url;
+                uploadedVideo.style.display = 'block';
+                uploadedVideo.load();
+            }
+        };
+
+        form.onsubmit = function(event) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+
+            xhr.open('POST', '/upload', true);
+
+            xhr.onloadstart = function() {
+                progressWrapper.style.display = 'block';
+                progressBar.style.width = '0%';
+            };
+
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    const processId = response.process_id;
+
+                    const checkProgress = setInterval(function() {
+                        fetch(`/progress/${processId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                progressBar.style.width = data.progress + '%';
+                                if (data.status === 'completed') {
+                                    clearInterval(checkProgress);
+
+                                    fetch(`/processed/${response.filename}`)
+                                        .then(res => res.blob())
+                                        .then(blob => {
+                                            const videoUrl = URL.createObjectURL(blob);
+                                            processedVideoSource.src = videoUrl;
+                                            processedVideoWrapper.style.display = 'block';
+                                            processedVideo.load();
+                                            downloadLink.href = `/processed/${response.filename}`;
+                                        });
+                                }
+                            });
+                    }, 1000);
+                } else {
+                    alert('Processing failed!');
+                }
+            };
+
+            xhr.send(formData);
+        };
+
+         function resetPage() {
+            form.reset();
+            uploadedVideo.style.display = 'none';
+            progressWrapper.style.display = 'none';
+            processedVideoWrapper.style.display = 'none';
+            // messageContainer.textContent = '';
+        }
+    </script>
+</body>
+</html>
