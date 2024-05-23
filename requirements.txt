@@ -1,5 +1,5 @@
-torch==2.1.0
-torchvision==0.16.0 
+torch==2.2.1
+torchvision==0.17.1
 opencv-python
-gradio
+flask
 git+https://github.com/facebookresearch/detectron2@main#subdirectory=projects/DensePose
