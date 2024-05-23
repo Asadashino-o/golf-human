@@ -3,153 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Upload and Process</title>
+    <title>高尔夫人体检测</title>
     <style>
         #progress-wrapper {
             display: none;
         }
+
         #progress-bar {
             width: 0%;
             height: 20px;
             background-color: green;
         }
+
         #uploaded-video {
             display: none;
         }
+
         #processed-video-wrapper {
             display: none;
         }
-        #server-output {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
+
+        #uploaded-video {
+            display: none;
         }
+
     </style>
 </head>
 <body>
-    <h1>Upload and Process Video</h1>
-    <form id="upload-form" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept="video/*" id="file-input">
-        <button type="submit">Upload and Analyze</button>
-        <button type="button" onclick="resetPage()">Reset</button>
-    </form>
+<h1>请上传需要检测的视频并选择检测类别</h1>
+<form id="upload-form" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept="video/*" id="file-input" required>
 
-    <h2>Original Video</h2>
-    <video id="uploaded-video" width="1080" height="720" controls>
-        <source id="uploaded-video-source" src="" type="video/mp4">
+    <div>
+        <label>
+            <input type="radio" name="detection" value="Face-on"> 正面检测
+        </label>
+        <label>
+            <input type="radio" name="detection" value="Down-the-line"> 侧面检测
+        </label>
+        <label>
+            <input type="radio" name="detection" value="Both"> 正侧面同时检测
+        </label>
+    </div>
+
+    <button type="submit">上传并分析</button>
+    <button type="button" onclick="resetPage()">重置</button>
+</form>
+
+<h2>视频预览</h2>
+<video id="uploaded-video" controls>
+    <source id="uploaded-video-source" src="" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<div id="progress-wrapper">
+    <h2>Processing...</h2>
+    <div id="progress-bar"></div>
+</div>
+
+<h2>结果视频</h2>
+<div id="processed-video-wrapper">
+    <video id="processed-video" controls>
+        <source id="processed-video-source" src="" type="video/mp4">
         Your browser does not support the video tag.
     </video>
+    <br>
+    <a id="download-link" href="" download>Download Processed Video</a>
+</div>
 
-    <div id="progress-wrapper">
-        <h2>Processing...</h2>
-        <div id="progress-bar"></div>
-    </div>
+<script>
+    const fileInput = document.getElementById('file-input');
+    const uploadedVideo = document.getElementById('uploaded-video');
+    const uploadedVideoSource = document.getElementById('uploaded-video-source');
+    const form = document.getElementById('upload-form');
+    const progressWrapper = document.getElementById('progress-wrapper');
+    const progressBar = document.getElementById('progress-bar');
+    const processedVideoWrapper = document.getElementById('processed-video-wrapper');
+    const processedVideo = document.getElementById('processed-video');
+    const processedVideoSource = document.getElementById('processed-video-source');
+    const downloadLink = document.getElementById('download-link');
 
-    <h2>Processed Video</h2>
-    <div id="processed-video-wrapper">
-        <video id="processed-video" width="1080" height="720" controls>
-            <source id="processed-video-source" src="" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        <br>
-        <a id="download-link" href="" download>Download Processed Video</a>
-    </div>
+    fileInput.onchange = function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            uploadedVideoSource.src = url;
+            uploadedVideo.style.display = 'block';
 
-<!--     <div id="server-output">-->
-<!--        <h2>Server Output</h2>-->
-<!--        <pre id="message-container"></pre>-->
-<!--    </div>-->
+            // 获取视频原始宽高并设置为原始宽高的二分之一
+            uploadedVideo.onloadedmetadata = function () {
+                const videoWidth = uploadedVideo.videoWidth;
+                const videoHeight = uploadedVideo.videoHeight;
+                uploadedVideo.style.width = (videoWidth / 2) + 'px';
+                uploadedVideo.style.height = (videoHeight / 2) + 'px';
+            }
+            uploadedVideo.load();
+        }
+    };
 
-    <script>
-        const fileInput = document.getElementById('file-input');
-        const uploadedVideo = document.getElementById('uploaded-video');
-        const uploadedVideoSource = document.getElementById('uploaded-video-source');
-        const form = document.getElementById('upload-form');
-        const progressWrapper = document.getElementById('progress-wrapper');
-        const progressBar = document.getElementById('progress-bar');
-        const processedVideoWrapper = document.getElementById('processed-video-wrapper');
-        const processedVideo = document.getElementById('processed-video');
-        const processedVideoSource = document.getElementById('processed-video-source');
-        const downloadLink = document.getElementById('download-link');
-        // const messageContainer = document.getElementById('message-container');
+    form.onsubmit = function (event) {
+        event.preventDefault();
 
-         // Function to fetch message from the server
-        // const fetchMessage = () => {
-        //     fetch('/get_message')
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             messageContainer.textContent = data.message;
-        //         })
-        //         .catch(error => {
-        //             console.error('Error:', error);
-        //         });
-        // };
-        //
-        // // Fetch message every 5 seconds
-        // setInterval(fetchMessage, 5000);
+        const detectionType = document.querySelector('input[name="detection"]:checked');
+        if (!detectionType) {
+            alert('请选择一种检测类型');
+            return;
+        }
+        const formData = new FormData(form);
+        formData.append('detection', detectionType.value);  // 添加检测类型到 formData
+        const xhr = new XMLHttpRequest();
 
-        fileInput.onchange = function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                uploadedVideoSource.src = url;
-                uploadedVideo.style.display = 'block';
-                uploadedVideo.load();
+        xhr.open('POST', '/upload', true);
+
+        xhr.onloadstart = function () {
+            progressWrapper.style.display = 'block';
+            progressBar.style.width = '0%';
+        };
+
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                const response = JSON.parse(xhr.responseText);
+                const processId = response.process_id;
+
+                const checkProgress = setInterval(function () {
+                    fetch(`/progress/${processId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            progressBar.style.width = data.progress + '%';
+                            if (data.status === 'completed') {
+                                clearInterval(checkProgress);
+
+                                fetch(`/processed/${response.filename}`)
+                                    .then(res => res.blob())
+                                    .then(blob => {
+                                        const videoUrl = URL.createObjectURL(blob);
+                                        processedVideoSource.src = videoUrl;
+                                        processedVideoWrapper.style.display = 'block';
+                                        downloadLink.href = `/processed/${response.filename}`;
+
+                                        // 获取处理后视频的原始宽高并设置为原始宽高的二分之一
+                                        processedVideo.onloadedmetadata = function () {
+                                            const videoWidth = processedVideo.videoWidth;
+                                            const videoHeight = processedVideo.videoHeight;
+                                            processedVideo.style.width = (videoWidth / 2) + 'px';
+                                            processedVideo.style.height = (videoHeight / 2) + 'px';
+                                        };
+                                        processedVideo.load();
+                                    });
+                            }
+                        });
+                }, 1000);
+            } else {
+                alert('Processing failed!');
             }
         };
 
-        form.onsubmit = function(event) {
-            event.preventDefault();
-            const formData = new FormData(form);
-            const xhr = new XMLHttpRequest();
+        xhr.send(formData);
+    };
 
-            xhr.open('POST', '/upload', true);
-
-            xhr.onloadstart = function() {
-                progressWrapper.style.display = 'block';
-                progressBar.style.width = '0%';
-            };
-
-            xhr.onload = function() {
-                if (xhr.status == 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    const processId = response.process_id;
-
-                    const checkProgress = setInterval(function() {
-                        fetch(`/progress/${processId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                progressBar.style.width = data.progress + '%';
-                                if (data.status === 'completed') {
-                                    clearInterval(checkProgress);
-
-                                    fetch(`/processed/${response.filename}`)
-                                        .then(res => res.blob())
-                                        .then(blob => {
-                                            const videoUrl = URL.createObjectURL(blob);
-                                            processedVideoSource.src = videoUrl;
-                                            processedVideoWrapper.style.display = 'block';
-                                            processedVideo.load();
-                                            downloadLink.href = `/processed/${response.filename}`;
-                                        });
-                                }
-                            });
-                    }, 1000);
-                } else {
-                    alert('Processing failed!');
-                }
-            };
-
-            xhr.send(formData);
-        };
-
-         function resetPage() {
-            form.reset();
-            uploadedVideo.style.display = 'none';
-            progressWrapper.style.display = 'none';
-            processedVideoWrapper.style.display = 'none';
-            // messageContainer.textContent = '';
-        }
-    </script>
+    function resetPage() {
+        form.reset();
+        uploadedVideo.style.display = 'none';
+        progressWrapper.style.display = 'none';
+        processedVideoWrapper.style.display = 'none';
+    }
+</script>
 </body>
 </html>
