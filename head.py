@@ -6,7 +6,8 @@ import torch
 from head_and_buttock import inference, draw_y_rectangle, get_head, video_prepare, initialize_detector
 
 
-def head(input_video_path="./input_video.mp4", output_video_path="./output_video.mp4", f_idx=604, interval=1):
+def head(input_video_path="./input_video.mp4", output_video_path="./output_video.mp4", f_idx=604, interval=1,
+         message=""):
     predictor = initialize_detector()
     video_capture, video_writer, num_frames = video_prepare(input_video_path, output_video_path)
 
@@ -119,6 +120,9 @@ def head(input_video_path="./input_video.mp4", output_video_path="./output_video
     dis_down = (y_down - begin_Y2) / height
     print("头部向上相对移动距离：{}".format(dis_up))
     print("头部向下相对移动距离：{}".format(dis_down))
+    message += "头部向上相对移动距离：{}\n".format(dis_up)
+    message += "头部向下相对移动距离：{}\n".format(dis_down)
+    return message
 
 
 if __name__ == "__main__":

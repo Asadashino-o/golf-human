@@ -229,9 +229,11 @@ def main(input_video_path, output_video_path, f_idx, interval):
         frame_num += 1
         print(f"Processed frame {frame_num} / {num_frames}")
     # Release resources
-    video_realease(video_capture, video_writer, begin_X1, begin_Y2, x_left, x_right, y_up, y_down, width, height)
+    message = video_realease(video_capture, video_writer, begin_X1, begin_Y2, x_left, x_right, y_up, y_down, width,
+                             height)
     # save_data(x1_coordinates, y1_coordinates, x2_coordinates, y2_coordinates, bbox_info)
     print(f"最左帧：{left}  最右帧：{right}  最上帧：{up}  最下帧：{down}")
+    return message
 
 
 def inference(predictor, frame):
