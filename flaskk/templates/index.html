@@ -27,6 +27,13 @@
             display: none;
         }
 
+        #txt-file-content {
+            display: none;
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
     </style>
 </head>
 <body>
@@ -71,6 +78,9 @@
     <a id="download-link" href="" download>Download Processed Video</a>
 </div>
 
+<h2>检测结果</h2>
+<div id="txt-file-content"></div>
+
 <script>
     const fileInput = document.getElementById('file-input');
     const uploadedVideo = document.getElementById('uploaded-video');
@@ -82,6 +92,7 @@
     const processedVideo = document.getElementById('processed-video');
     const processedVideoSource = document.getElementById('processed-video-source');
     const downloadLink = document.getElementById('download-link');
+    const txtFileContent = document.getElementById('txt-file-content');
 
     fileInput.onchange = function (event) {
         const file = event.target.files[0];
@@ -140,7 +151,7 @@
                                         processedVideoSource.src = videoUrl;
                                         processedVideoWrapper.style.display = 'block';
                                         downloadLink.href = `/processed/${response.filename}`;
-
+                                        
                                         // 获取处理后视频的原始宽高并设置为原始宽高的二分之一
                                         processedVideo.onloadedmetadata = function () {
                                             const videoWidth = processedVideo.videoWidth;
@@ -150,6 +161,18 @@
                                         };
                                         processedVideo.load();
                                     });
+
+                                fetch(`/processed_txt/${response.filename}`)
+                                    .then(res => res.text())
+                                    .then(text => {
+                                        txtFileContent.textContent = text;
+                                        txtFileContent.style.display = 'block';
+                                    })
+                                    .catch(err => {
+                                    console.error('Error fetching txt file:', err);
+                                    txtFileContent.textContent = 'Error loading text file.';
+                                    txtFileContent.style.display = 'block';
+                                });
                             }
                         });
                 }, 1000);
@@ -162,10 +185,15 @@
     };
 
     function resetPage() {
-        form.reset();
+        fileInput.value = '';
         uploadedVideo.style.display = 'none';
+        uploadedVideoSource.src = '';
         progressWrapper.style.display = 'none';
+        progressBar.style.width = '0%';
         processedVideoWrapper.style.display = 'none';
+        processedVideoSource.src = '';
+        txtFileContent.style.display = 'none';
+        txtFileContent.textContent = '';
     }
 </script>
 </body>
