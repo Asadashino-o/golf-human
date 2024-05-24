@@ -40,11 +40,12 @@ def index():
     return render_template('index.html')
 
 
-def process_video(filepath, processed_filepath, process_id, detection_type):
+def process_video(filepath, processed_filepath, process_id, detection_type, message=""):
     # 记录开始时间
     start_time = time.time()
     global number
     filename = os.path.basename(filepath)
+
     # 使用正则表达式提取文件名中的数字部分
     match = re.search(r'(\d+)', filename)
     if match:
@@ -53,22 +54,32 @@ def process_video(filepath, processed_filepath, process_id, detection_type):
         print("提取的数字:", number)
     else:
         print("未找到数字")
+
     # 根据检测类型选择不同的处理逻辑
     if detection_type == 'Face-on':
-        fo(filepath, processed_filepath, number, 4)
+        message = fo(filepath, processed_filepath, number, 4)
     elif detection_type == 'Down-the-line':
-        dtl(filepath, processed_filepath, number, 4)
+        message = dtl(filepath, processed_filepath, number, 4)
     elif detection_type == 'Both':
-        both(filepath, processed_filepath, number, 4)
+        message = both(filepath, processed_filepath, number, 4)
 
-    # 更新进度为100%
-    progress_dict[process_id] = 100
     # 记录结束时间
     end_time = time.time()
     # 计算运行时间
     runtime = end_time - start_time
+    runtime_message = f"检测时间为：{runtime} 秒"
+    print(runtime_message)
 
-    print("程序运行时间为：", runtime, "秒")
+    # 将运行时间信息添加到 message 中
+    full_message = message + "\n" + runtime_message
+
+    # 生成并保存TXT文件
+    txt_filename = os.path.splitext(processed_filepath)[0] + '.txt'
+    with open(txt_filename, 'w') as f:
+        f.write(full_message)
+
+    # 更新进度为100%
+    progress_dict[process_id] = 100
 
 
 @app.route('/upload', methods=['POST'])
@@ -121,6 +132,19 @@ def processed(filename):
         return abort(500, description=str(e))
 
 
+@app.route('/processed_txt/<filename>', methods=['GET'])
+def processed_txt(filename):
+    txt_filename = os.path.splitext(filename)[0] + '.txt'
+    file_path = os.path.join(PROCESSED_VIDEO_DIR, txt_filename)
+    try:
+        if os.path.exists(file_path):
+            return send_file(file_path, mimetype='text/plain')
+        else:
+            return abort(404, description="File not found")
+    except Exception as e:
+        return abort(500, description=str(e))
+
+
 def reduce_bitrate(input_video, output_video):
     video_clip = VideoFileClip(input_video)
     video_clip.write_videofile(output_video, codec="libx264")  # 将视频编码改为h264，便于在页面展示
@@ -128,4 +152,4 @@ def reduce_bitrate(input_video, output_video):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=2348, debug=True) # 这是服务器的端口设置，目前是全开放端口,仅供测试并不安全，运行后的网址是{your_server_name}:2348
+    app.run(host='0.0.0.0', port=2348, debug=True)  # 这是服务器的端口设置，目前是全开放端口,仅供测试并不安全，运行后的网址是{your_server_name}:2348
