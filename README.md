@@ -32,6 +32,7 @@ To utilize this tool, ensure the installation of:
 3. Install necessary Python packages:
     ```bash
     pip install -r requirements.txt
+    conda install opencv -c conda-forge
     ```
 
 4. Clone the Detectron repository:
