@@ -5,7 +5,6 @@ import sys
 import time
 from flask_cors import CORS
 from flask import Flask, render_template, request, redirect, abort, jsonify, send_file
-from moviepy.video.io.VideoFileClip import VideoFileClip
 
 sys.path.append('..')  # 将上级目录添加到Python路径中
 from merge2 import main as both
@@ -121,11 +120,9 @@ def progress(process_id):
 def processed(filename):
     # 生成处理后的视频文件的绝对路径
     file_path = os.path.join(PROCESSED_VIDEO_DIR, filename)
-    output = os.path.join(OUTPUT, filename)
     try:
         if os.path.exists(file_path):
-            reduce_bitrate(file_path, output)
-            return send_file(output, mimetype='video/mp4')  # 使用 send_file 发送文件
+            return send_file(file_path, mimetype='video/mp4')  # 使用 send_file 发送文件
         else:
             return abort(404, description="File not found")
     except Exception as e:
@@ -143,12 +140,6 @@ def processed_txt(filename):
             return abort(404, description="File not found")
     except Exception as e:
         return abort(500, description=str(e))
-
-
-def reduce_bitrate(input_video, output_video):
-    video_clip = VideoFileClip(input_video)
-    video_clip.write_videofile(output_video, codec="libx264")  # 将视频编码改为h264，便于在页面展示
-    video_clip.close()
 
 
 if __name__ == '__main__':
