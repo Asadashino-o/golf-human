@@ -35,7 +35,7 @@ def video_prepare(input_video_path, output_video_path):
     num_frames = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Create a VideoWriter object to write the output video
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 视频编码格式
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')  # 视频编码格式
     video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
 
     return video_capture, video_writer, num_frames
