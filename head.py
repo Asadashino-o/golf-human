@@ -3,7 +3,7 @@ import cv2
 import time
 import numpy as np
 import torch
-from head_and_buttock import inference, draw_y_rectangle, get_head, video_prepare, initialize_detector
+from Tools import inference, draw_y_rectangle, get_head, video_prepare, initialize_detector
 
 
 def head(input_video_path="./input_video.mp4", output_video_path="./output_video.mp4", f_idx=604, interval=1,

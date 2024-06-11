@@ -4,7 +4,7 @@ import time
 import numpy as np
 import torch
 from densepose.vis.extractor import DensePoseResultExtractor, ScoredBoundingBoxExtractor
-from head_and_buttock import draw_x_rectangle, draw_y_rectangle, get_head, get_buttocks, video_prepare, \
+from Tools import draw_x_rectangle, draw_y_rectangle, get_head, get_buttocks, video_prepare, \
     initialize_detector, video_realease
 
 
@@ -34,7 +34,7 @@ def inference(predictor, frame):
     # 选择面积前二的实例
     top_two_area_boxes = sorted_area_and_boxes[:2]
 
-    # 按 x[1][0] 从小到大排序
+    # 按 x[1][0] 从小到大排序（从左到右）
     sorted_top_two_area_boxes = sorted(top_two_area_boxes, key=lambda x: x[1][0])
 
     # 提取前二实例的结果和边界框
