@@ -51,6 +51,7 @@ def process_video(filepath, processed_filepath, process_id, detection_type, mess
         number_str = match.group(1)  # 获取匹配到的第一个数字字符串
         number = int(number_str)
         print("提取的数字:", number)
+        progress_dict[process_id] = 20 # 更新进度为20%
     else:
         print("未找到数字")
 
@@ -143,4 +144,4 @@ def processed_txt(filename):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=2348, debug=True)  # 这是服务器的端口设置，目前是全开放端口,仅供测试并不安全，运行后的网址是{your_server_name}:2348
+    app.run(host='127.0.0.1', port=20001, debug=True)  # 这是服务器的端口设置，目前是全开放端口,仅供测试并不安全，运行后的网址是{your_server_name}:2348
