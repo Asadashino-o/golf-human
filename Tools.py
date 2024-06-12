@@ -58,6 +58,7 @@ def inference(predictor, frame):
     # 找出 box[2] 和 box[3] 最大的实例：面积最大
     max_area_box = max(zip(filtered_densepose_results, filtered_boxes_xywh), key=lambda x: x[1][2] * x[1][3])
     filtered_results = [max_area_box]
+    return filtered_results
 
 
 def video_realease(video_capture, video_writer, begin_X1, begin_Y2, x_left, x_right, y_up, y_down, width, height,
