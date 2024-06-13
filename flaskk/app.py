@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask import Flask, render_template, request, redirect, abort, jsonify, send_file
 
 sys.path.append('..')  # 将上级目录添加到Python路径中
+from Batting_detection import get_frame
 from merge2 import main as both
 from head_and_buttock import main as dtl
 from head import head as fo
@@ -27,7 +28,6 @@ if not os.path.exists(app.config['PROCESSED_FOLDER']):
     os.makedirs(app.config['PROCESSED_FOLDER'])
 
 PROCESSED_VIDEO_DIR = os.path.join(os.getcwd(), 'processed')
-OUTPUT = os.path.join(os.getcwd(), 'processed/output')
 
 
 def allowed_file(filename):
@@ -43,17 +43,24 @@ def process_video(filepath, processed_filepath, process_id, detection_type, mess
     # 记录开始时间
     start_time = time.time()
     global number
-    filename = os.path.basename(filepath)
 
-    # 使用正则表达式提取文件名中的数字部分
-    match = re.search(r'(\d+)', filename)
-    if match:
-        number_str = match.group(1)  # 获取匹配到的第一个数字字符串
-        number = int(number_str)
-        print("提取的数字:", number)
-        progress_dict[process_id] = 20 # 更新进度为20%
-    else:
-        print("未找到数字")
+    # filename = os.path.basename(filepath)
+    # # 使用正则表达式提取文件名中的数字部分
+    # match = re.search(r'(\d+)', filename)
+    # if match:
+    #     number_str = match.group(1)  # 获取匹配到的第一个数字字符串
+    #     number = int(number_str)
+    #     print("提取的数字:", number)
+    #     progress_dict[process_id] = 20 # 更新进度为20%
+    # else:
+    #     print("未找到数字")
+
+    model_file = "ballAndClub.pt"
+    number = get_frame(filepath, model_file)
+    if number == -1:
+        return jsonify({'error': 'Can not detect the batting frame'}), 420
+    progress_dict[process_id] = 20  # 更新进度为20%
+    print("击球帧为:", number)
 
     # 根据检测类型选择不同的处理逻辑
     if detection_type == 'Face-on':
