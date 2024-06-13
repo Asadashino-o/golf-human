@@ -6,6 +6,7 @@ from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 import os
 from matplotlib import pyplot as plt
+import numpy as np
 
 
 def initialize_detector():
@@ -152,17 +153,19 @@ def get_head(iuv_arr, bbox_xywh):
         :return:臀头部最上边的绝对坐标,tensor格式，处理为纯数据.item()
     """
     matrix = iuv_arr[0]
-    index_x = 0
-    index_y = 10000
-    for i in range(len(matrix[0])):  # 使用range函数以获取正确的索引
-        for j in range(len(matrix)):  # 使用range函数以获取正确的索引
-            if int(matrix[j][i]) in {23, 24}:
-                if index_y > j:  # 更新最上边像素的索引
-                    index_y = j
-                    index_x = i
+    head_mask = np.isin(matrix, [23, 24])
+    head_indices = np.argwhere(head_mask)
+
+    if head_indices.size == 0:
+        return None
+
+    top_head_index = head_indices[np.argmin(head_indices[:, 0])]
     x, y, w, h = bbox_xywh
-    if index_x <= w and index_y <= h:
-        return (x + index_x).item(), (y + index_y).item()
+    head_x = x + top_head_index[1]
+    head_y = y + top_head_index[0]
+
+    if head_x <= x + w and head_y <= y + h:
+        return head_x.item(), head_y.item()
     else:
         return None
 
@@ -175,17 +178,19 @@ def get_buttocks(iuv_arr, bbox_xywh):
     :return:臀部最左边的绝对坐标,tensor格式，处理为纯数据.item()
     """
     matrix = iuv_arr[0]
-    index_x = 10000
-    index_y = 0
-    for i in range(len(matrix)):  # 使用range函数以获取正确的索引
-        for j in range(len(matrix[0])):  # 使用range函数以获取正确的索引
-            if int(matrix[i][j]) in {8, 10, 7, 9}:
-                if index_x > j:  # 更新最左边像素的索引
-                    index_x = j
-                    index_y = i
+    buttocks_mask = np.isin(matrix, [8, 10, 7, 9])
+    buttocks_indices = np.argwhere(buttocks_mask)
+
+    if buttocks_indices.size == 0:
+        return None
+
+    left_buttocks_index = buttocks_indices[np.argmin(buttocks_indices[:, 1])]
     x, y, w, h = bbox_xywh
-    if index_x <= w and index_y <= h:
-        return (x + index_x).item(), (y + index_y).item()
+    buttocks_x = x + left_buttocks_index[1]
+    buttocks_y = y + left_buttocks_index[0]
+
+    if buttocks_x <= x + w and buttocks_y <= y + h:
+        return buttocks_x.item(), buttocks_y.item()
     else:
         return None
 
