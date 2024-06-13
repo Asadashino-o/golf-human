@@ -7,7 +7,7 @@ from densepose.vis.densepose_results import (
     DensePoseResultsFineSegmentationVisualizer as Visualizer,
 )
 from densepose.vis.extractor import DensePoseResultExtractor
-from head_and_buttock import initialize_detector
+from Tools import initialize_detector
 
 
 def main(input_image_path="./input_image.jpg"):
