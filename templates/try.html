@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高尔夫检测</title>
+    <style>
+        #progress-wrapper, #progress-wrapper-2 {
+            display: none;
+        }
+
+        #progress-bar, #progress-bar-2 {
+            width: 0%;
+            height: 20px;
+            background-color: green;
+        }
+
+        #uploaded-video, #uploaded-video-front, #uploaded-video-side {
+            display: none;
+        }
+
+        #processed-video-wrapper, #processed-video-wrapper-2 {
+            display: none;
+        }
+
+        #txt-file-content {
+            display: none;
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .tag-content {
+            display: none;
+        }
+
+        .tag-content.active {
+            display: block;
+        }
+
+        .nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav li {
+            display: inline;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .nav .active {
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+<div class="nav">
+    <ul>
+        <li class="active" onclick="showTag('tag1')">人体位移检测</li>
+        <li onclick="showTag('tag2')">正侧面视频同步拼接</li>
+    </ul>
+</div>
+<div class="main">
+    <div id="tag1" class="tag-content active">
+        <h1>请上传需要检测的视频并选择检测类别</h1>
+        <form id="upload-form" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept="video/*" id="file-input" required>
+            <div>
+                <label>
+                    <input type="radio" name="detection" value="Face-on"> 正面检测
+                </label>
+                <label>
+                    <input type="radio" name="detection" value="Down-the-line"> 侧面检测
+                </label>
+                <label>
+                    <input type="radio" name="detection" value="Both"> 正侧面同时检测
+                </label>
+            </div>
+            <button type="submit">上传并分析</button>
+            <button type="button" onclick="resetPage()">重置</button>
+        </form>
+        <h2>视频预览</h2>
+        <video id="uploaded-video" controls>
+            <source id="uploaded-video-source" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div id="progress-wrapper">
+            <h2>Processing...</h2>
+            <div id="progress-bar"></div>
+        </div>
+        <h2>结果视频</h2>
+        <div id="processed-video-wrapper">
+            <video id="processed-video" controls>
+                <source id="processed-video-source" src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <br>
+            <a id="download-link" href="" download>Download Processed Video</a>
+        </div>
+        <h2>检测结果</h2>
+        <div id="txt-file-content"></div>
+    </div>
+
+    <div id="tag2" class="tag-content">
+        <h1>请上传正面和侧面视频</h1>
+        <form id="upload-form-2" method="post" enctype="multipart/form-data">
+            <label>正面视频:</label>
+            <input type="file" name="file-front" accept="video/*" id="file-input-front" required>
+            <br>
+            <label>侧面视频:</label>
+            <input type="file" name="file-side" accept="video/*" id="file-input-side" required>
+            <button type="submit">上传并拼接</button>
+            <button type="button" onclick="resetPage2()">重置</button>
+        </form>
+        <h2>正面视频预览</h2>
+        <video id="uploaded-video-front" controls>
+            <source id="uploaded-video-source-front" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <h2>侧面视频预览</h2>
+        <video id="uploaded-video-side" controls>
+            <source id="uploaded-video-source-side" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div id="progress-wrapper-2">
+            <h2>Processing...</h2>
+            <div id="progress-bar-2"></div>
+        </div>
+        <h2>拼接视频</h2>
+        <div id="processed-video-wrapper-2">
+            <video id="processed-video-2" controls>
+                <source id="processed-video-source-2" src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <br>
+            <a id="download-link-2" href="" download>Download Processed Video</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showTag(tag) {
+        document.querySelectorAll('.tag-content').forEach(function (content) {
+            content.classList.remove('active');
+        });
+        document.getElementById(tag).classList.add('active');
+        document.querySelectorAll('.nav li').forEach(function (navItem) {
+            navItem.classList.remove('active');
+        });
+        document.querySelector('.nav li[onclick="showTag(\'' + tag + '\')"]').classList.add('active');
+    }
+
+    // 第一标签功能实现
+    const fileInput = document.getElementById('file-input');
+    const uploadedVideo = document.getElementById('uploaded-video');
+    const uploadedVideoSource = document.getElementById('uploaded-video-source');
+    const form = document.getElementById('upload-form');
+    const progressWrapper = document.getElementById('progress-wrapper');
+    const progressBar = document.getElementById('progress-bar');
+    const processedVideoWrapper = document.getElementById('processed-video-wrapper');
+    const processedVideo = document.getElementById('processed-video');
+    const processedVideoSource = document.getElementById('processed-video-source');
+    const downloadLink = document.getElementById('download-link');
+    const txtFileContent = document.getElementById('txt-file-content');
+    const uploadButton = form.querySelector('button[type="submit"]');
+
+    fileInput.onchange = function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            uploadedVideoSource.src = url;
+            uploadedVideo.style.display = 'block';
+            uploadedVideo.onloadedmetadata = function () {
+                const videoWidth = uploadedVideo.videoWidth;
+                const videoHeight = uploadedVideo.videoHeight;
+                uploadedVideo.style.width = (videoWidth / 2) + 'px';
+                uploadedVideo.style.height = (videoHeight / 2) + 'px';
+            }
+            uploadedVideo.load();
+        }
+    };
+
+    form.onsubmit = function (event) {
+        event.preventDefault();
+        const detectionType = document.querySelector('input[name="detection"]:checked');
+        if (!detectionType) {
+            alert('请选择一种检测类型');
+            return;
+        }
+        const formData = new FormData(form);
+        formData.append('detection', detectionType.value);
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload', true);
+        xhr.onloadstart = function () {
+            progressWrapper.style.display = 'block';
+            progressBar.style.width = '0%';
+            uploadButton.disabled = true; // 禁用上传按钮
+        };
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                const response = JSON.parse(xhr.responseText);
+                const processId = response.process_id;
+                const checkProgress = setInterval(function () {
+                    fetch(`/progress/${processId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            progressBar.style.width = data.progress + '%';
+                            if (data.progress === 1) {
+                                clearInterval(checkProgress);
+                                alert('未在视频中检测到击球帧，请重新选择视频上传');
+                            } else if (data.status === 'completed') {
+                                clearInterval(checkProgress);// 停止轮询
+                                fetch(`/processed/${response.filename}`)
+                                    .then(res => res.blob())
+                                    .then(blob => {
+                                        const videoUrl = URL.createObjectURL(blob);
+                                        processedVideoSource.src = videoUrl;
+                                        processedVideoWrapper.style.display = 'block';
+                                        downloadLink.href = `/processed/${response.filename}`;
+                                        processedVideo.onloadedmetadata = function () {
+                                            const videoWidth = processedVideo.videoWidth;
+                                            const videoHeight = processedVideo.videoHeight;
+                                            processedVideo.style.width = (videoWidth / 2) + 'px';
+                                            processedVideo.style.height = (videoHeight / 2) + 'px';
+                                        };
+                                        processedVideo.load();
+                                    });
+                                fetch(`/processed_txt/${response.filename}`)
+                                    .then(res => res.text())
+                                    .then(text => {
+                                        txtFileContent.textContent = text;
+                                        txtFileContent.style.display = 'block';
+                                    })
+                                    .catch(err => {
+                                        console.error('Error fetching txt file:', err);
+                                        txtFileContent.textContent = 'Error loading text file.';
+                                        txtFileContent.style.display = 'block';
+                                    });
+                            }
+                        });
+                }, 1000);
+            } else {
+                clearInterval(checkProgress);
+                alert('处理失败，请重新选择视频上传!');
+            }
+        };
+        xhr.send(formData);
+    };
+
+    function resetPage() {
+        fileInput.value = '';
+        uploadedVideo.style.display = 'none';
+        uploadedVideoSource.src = '';
+        progressWrapper.style.display = 'none';
+        progressBar.style.width = '0%';
+        processedVideoWrapper.style.display = 'none';
+        processedVideoSource.src = '';
+        txtFileContent.style.display = 'none';
+        txtFileContent.textContent = '';
+        uploadButton.disabled = false;
+
+        // 重置检测类型
+        const detectionRadios = document.querySelectorAll('input[name="detection"]');
+        detectionRadios.forEach(radio => {
+            radio.checked = false;
+        });
+    }
+
+    // 第二标签功能实现
+    const fileInputFront = document.getElementById('file-input-front');
+    const fileInputSide = document.getElementById('file-input-side');
+    const uploadedVideoFront = document.getElementById('uploaded-video-front');
+    const uploadedVideoSide = document.getElementById('uploaded-video-side');
+    const uploadedVideoSourceFront = document.getElementById('uploaded-video-source-front');
+    const uploadedVideoSourceSide = document.getElementById('uploaded-video-source-side');
+    const form2 = document.getElementById('upload-form-2');
+    const progressWrapper2 = document.getElementById('progress-wrapper-2');
+    const progressBar2 = document.getElementById('progress-bar-2');
+    const processedVideoWrapper2 = document.getElementById('processed-video-wrapper-2');
+    const processedVideo2 = document.getElementById('processed-video-2');
+    const processedVideoSource2 = document.getElementById('processed-video-source-2');
+    const downloadLink2 = document.getElementById('download-link-2');
+    const uploadButton2 = form2.querySelector('button[type="submit"]');
+
+    fileInputFront.onchange = function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            uploadedVideoSourceFront.src = url;
+            uploadedVideoFront.style.display = 'block';
+            uploadedVideoFront.onloadedmetadata = function () {
+                const videoWidth = uploadedVideoFront.videoWidth;
+                const videoHeight = uploadedVideoFront.videoHeight;
+                uploadedVideoFront.style.width = (videoWidth / 2) + 'px';
+                uploadedVideoFront.style.height = (videoHeight / 2) + 'px';
+            }
+            uploadedVideoFront.load();
+        }
+    };
+
+    fileInputSide.onchange = function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            uploadedVideoSourceSide.src = url;
+            uploadedVideoSide.style.display = 'block';
+            uploadedVideoSide.onloadedmetadata = function () {
+                const videoWidth = uploadedVideoSide.videoWidth;
+                const videoHeight = uploadedVideoSide.videoHeight;
+                uploadedVideoSide.style.width = (videoWidth / 2) + 'px';
+                uploadedVideoSide.style.height = (videoHeight / 2) + 'px';
+            }
+            uploadedVideoSide.load();
+        }
+    };
+
+    form2.onsubmit = function (event) {
+        event.preventDefault();
+        if (!fileInputFront.files[0] || !fileInputSide.files[0]) {
+            alert('请上传正面和侧面视频');
+            return;
+        }
+        const formData = new FormData(form2);
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload-multiple', true);
+        xhr.onloadstart = function () {
+            progressWrapper2.style.display = 'block';
+            progressBar2.style.width = '0%';
+            uploadButton2.disabled = true; // 禁用上传按钮
+        };
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                const response = JSON.parse(xhr.responseText);
+                const processId = response.process_id;
+                const checkProgress = setInterval(function () {
+                    fetch(`/progress/${processId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            progressBar2.style.width = data.progress + '%';
+                            if (data.progress === 1) {
+                                clearInterval(checkProgress);
+                                alert('未在视频中检测到击球帧，请重新选择视频上传');
+                            } else if (data.status === 'completed') {
+                                clearInterval(checkProgress);
+                                fetch(`/processed/${response.filename}`)
+                                    .then(res => res.blob())
+                                    .then(blob => {
+                                        const videoUrl = URL.createObjectURL(blob);
+                                        processedVideoSource2.src = videoUrl;
+                                        processedVideoWrapper2.style.display = 'block';
+                                        downloadLink2.href = `/processed/${response.filename}`;
+                                        processedVideo2.onloadedmetadata = function () {
+                                            const videoWidth = processedVideo2.videoWidth;
+                                            const videoHeight = processedVideo2.videoHeight;
+                                            processedVideo2.style.width = (videoWidth / 2) + 'px';
+                                            processedVideo2.style.height = (videoHeight / 2) + 'px';
+                                        };
+                                        processedVideo2.load();
+                                    });
+                            }
+                        });
+                }, 1000);
+            } else {
+                alert('处理失败，请重新选择视频上传!');
+            }
+        };
+        xhr.send(formData);
+    };
+
+    function resetPage2() {
+        fileInputFront.value = '';
+        fileInputSide.value = '';
+        uploadedVideoFront.style.display = 'none';
+        uploadedVideoSourceFront.src = '';
+        uploadedVideoSide.style.display = 'none';
+        uploadedVideoSourceSide.src = '';
+        progressWrapper2.style.display = 'none';
+        progressBar2.style.width = '0%';
+        processedVideoWrapper2.style.display = 'none';
+        processedVideoSource2.src = '';
+        uploadButton2.disabled = false;
+    }
+
+
+</script>
+</body>
+</html>
