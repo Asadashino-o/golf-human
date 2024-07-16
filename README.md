@@ -71,6 +71,7 @@ Thanks to:
 - [Gonzalo Vidal](https://www.tiktok.com/@_gonzavidal) for the sample videos.
 - [Sylvain Filoni](https://twitter.com/fffiloni) for the deployment of the Gradio Space in [Hugging Face](https://huggingface.co/spaces/fffiloni/video2densepose).
 - https://github.com/Flode-Labs
+- yolov8-https://docs.ultralytics.com/
 
 It is just a copy-learning project.
 
