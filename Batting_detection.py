@@ -2,27 +2,26 @@ import cv2
 from ultralytics import YOLO
 
 
-# 获得一个视频文件的击球帧号，索引从0开始
-# 这个返回的一个击球帧而不是一个列表
-# 击球帧一定要找好，这个找不好则后面一定会出问题
-# 其实可以返回击球帧列表的最后一个 这个应该是比较准的
-def getBattingFrame(model, video_file):
+# 获得一个视频文件的击球帧号和球位置，索引从0开始
+def getBattingFrameAndPosition(model, video_file):
     ball_list = getModelBall(model, video_file)
 
     if len(ball_list) == 0:
-        return -1
+        return -1, None
 
     diff_list = detectFrameWithVideoRectList(video_file, ball_list)
     batting_frame_list = []
+    ball_positions = []
     for ele_list in diff_list:
         for ele in ele_list:
             if ele["diff"] > 0.12:
                 print(ele["diff"], ele["startFrameNum"])
                 batting_frame_list.append(ele["startFrameNum"])
+                ball_positions.append(ele["ball_position"])  # 返回球的位置坐标而不是索引
     if len(batting_frame_list) == 0:
-        return -1
+        return -1, None
     print(batting_frame_list)
-    return batting_frame_list[-1]
+    return batting_frame_list[-1], ball_positions[-1]
 
 
 # 这个方法并不保证一定能找到高尔夫球
@@ -61,7 +60,7 @@ def getModelBall(model, video_file):
     return ball_list
 
 
-# 返回高尔夫球的位置 放在
+# 返回高尔夫球的位置
 def modelDetect(model, pic):
     result = model(pic)[0]
 
@@ -96,7 +95,7 @@ def detectFrameWithVideoRectList(videoFilePath, rect_list):
             diff = getDiffWithAbs(frame1, frame2, rect)
             dic = dict()
             dic["startFrameNum"] = frameNum  # 从0开始，比较的第一帧
-            dic["ball_index"] = index
+            dic["ball_position"] = rect[0]  # 返回球的位置坐标
             dic["diff"] = diff / (rect[1][0] * rect[1][1] * 255 * 3)
             results[-1].append(dic)
         frame1 = frame2
@@ -116,15 +115,16 @@ def getDiffWithAbs(frame1, frame2, rect):
     return diff
 
 
-def get_frame(input_video_path, model_file):
+def get_frame_and_position(input_video_path, model_file):
     model = YOLO(model_file)
-    batting_frame = getBattingFrame(model, input_video_path)
-    return batting_frame
+    batting_frame, ball_position = getBattingFrameAndPosition(model, input_video_path)
+    return batting_frame, ball_position
 
 
 if __name__ == '__main__':
     model_file = "ballAndClub.pt"
     model = YOLO(model_file)
     input_video_path = "./sample_videos/214.mp4"
-    batting_frame = getBattingFrame(model, input_video_path)
-    print(batting_frame)
+    batting_frame, ball_position = getBattingFrameAndPosition(model, input_video_path)
+    print("Batting Frame:", batting_frame)
+    print("Ball Position:", ball_position)

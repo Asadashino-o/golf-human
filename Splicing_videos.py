@@ -1,7 +1,7 @@
 import cv2
 import time
 import numpy as np
-from Batting_detection import getBattingFrame
+from Batting_detection import getBattingFrameAndPosition
 from ultralytics import YOLO
 
 
@@ -10,8 +10,8 @@ from ultralytics import YOLO
 def mergeFrontAndSideVideo(front_video, side_video, model, output_video):
     # 获得击球帧
     batting_frame_start_time = time.time()
-    front_batting_frame = getBattingFrame(model, front_video)
-    side_batting_frame = getBattingFrame(model, side_video)
+    front_batting_frame, _ = getBattingFrameAndPosition(model, front_video)
+    side_batting_frame, _ = getBattingFrameAndPosition(model, side_video)
 
     if front_batting_frame == -1 or side_batting_frame == -1:
         return -1
@@ -45,13 +45,15 @@ def mergeFrontAndSideVideo(front_video, side_video, model, output_video):
         video2_frame_dict[index] = frame
         index += 1
 
+    output_frame = min(front_batting_frame, side_batting_frame)
+
     output_fps = 30
     video1_width = int(front_video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     video1_height = int(front_video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     video2_width = int(side_video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     video2_height = int(side_video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 可以根据需要更改编码器
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')  # 可以根据需要更改编码器
 
     out = cv2.VideoWriter(output_video, fourcc, output_fps,
                           (video1_width + video2_width, max(video1_height, video2_height)))

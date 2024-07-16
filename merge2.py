@@ -4,8 +4,9 @@ import time
 import numpy as np
 import torch
 from densepose.vis.extractor import DensePoseResultExtractor, ScoredBoundingBoxExtractor
-from Tools import draw_x_rectangle, draw_y_rectangle, get_head, get_buttocks, video_prepare, \
-    initialize_detector, video_realease
+from Tools import draw_x_rectangle, draw_y_rectangle, get_headtop, get_buttocks_densepose, video_prepare, \
+    initialize_detector, video_realease, initialize_det_segmentation, filter_and_select_closest_instance, \
+    get_head_densepose
 
 
 def inference(predictor, frame):
@@ -27,6 +28,9 @@ def inference(predictor, frame):
 
     # 计算每个实例的面积并将其与对应的结果和边界框一起存储
     area_and_boxes = [(x[0], x[1], x[1][2] * x[1][3]) for x in zip(filtered_densepose_results, filtered_boxes_xywh)]
+    
+    if not area_and_boxes:
+        return None
 
     # 按面积从大到小排序
     sorted_area_and_boxes = sorted(area_and_boxes, key=lambda x: x[2], reverse=True)
@@ -46,6 +50,7 @@ def inference(predictor, frame):
 def main(input_video_path, output_video_path, f_idx, interval=4):
     # Initialize Detectron2 configuration for DensePose
     predictor = initialize_detector()
+    model = initialize_det_segmentation()
     video_capture, video_writer, num_frames = video_prepare(input_video_path, output_video_path)
     # Process each frame in the video
     frame_num = 0
@@ -138,6 +143,7 @@ def main(input_video_path, output_video_path, f_idx, interval=4):
             continue
 
         filtered_results = inference(predictor, frame)
+        outputs = model(frame)["instances"]
         if len(filtered_results) != 2:
             video_writer.write(frame)
             frame_num += 1
@@ -153,9 +159,13 @@ def main(input_video_path, output_video_path, f_idx, interval=4):
         ).type(torch.uint8)
         iuv_array1 = iuv_array1.cpu().numpy()  # 将 CUDA tensor 转换为 NumPy 数组
         iuv_array2 = iuv_array2.cpu().numpy()
-        head_coords1 = get_head(iuv_array1, box1)
-        head_coords2 = get_head(iuv_array2, box2)
-        buttocks_coords2 = get_buttocks(iuv_array2, box2)
+        head_coords1 = get_head_densepose(iuv_array1, box1)
+        head_coords2 = get_head_densepose(iuv_array2, box2)
+        head_instance_info1 = filter_and_select_closest_instance(outputs, head_coords1)
+        head_instance_info2 = filter_and_select_closest_instance(outputs, head_coords2)
+        head_coords1 = get_headtop(head_instance_info1)
+        head_coords2 = get_headtop(head_instance_info2)
+        buttocks_coords2 = get_buttocks_densepose(iuv_array2, box2)
         if buttocks_coords2 is None:
             x1 = prev_x1
             y1 = prev_y1
