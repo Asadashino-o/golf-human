@@ -10,9 +10,9 @@ def worker(gpu_id, input, output, idx, interval, category):
     # 设置指定GPU
     torch.cuda.set_device(gpu_id)
     if category == 1:
-        main(input, output, idx, interval)
+        main(input, output, idx, interval, None)
     else:
-        head(input, output, idx, interval)
+        head(input, output, idx, interval, None)
     # 在视频上执行推理
     # 这里需要根据具体情况编写视频处理的代码
     print(f"Processing {input} on GPU {gpu_id}")
