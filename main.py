@@ -3,7 +3,7 @@ from head import head
 
 
 def main(input_video_path="./input_video.mp4", output_video_path="./output_video.mp4"):
-    head(input_video_path, output_video_path, 1000, 1)  # 1000 is the number of detection frames
+    head(input_video_path, output_video_path, 1000, 1, None)  # 1000 is the number of detection frames
 
 
 if __name__ == "__main__":
