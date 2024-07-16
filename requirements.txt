@@ -1,5 +1,6 @@
 torch==2.2.1
 torchvision==0.17.1
 flask
+flask-cors
 ultralytics
 git+https://github.com/facebookresearch/detectron2@main#subdirectory=projects/DensePose
