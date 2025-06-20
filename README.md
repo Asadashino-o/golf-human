@@ -42,7 +42,7 @@ To utilize this tool, ensure the installation of:
    
 5. Download the pkl weight file to human-golf/
    Download URL:
-   https://dl.fbaipublicfiles.com/densepose/densepose_rcnn_R_50_FPN_s1x/165712039/model_final_162be9.pkl
+   [densepose-R50_FPN_six](https://dl.fbaipublicfiles.com/densepose/densepose_rcnn_R_50_FPN_s1x/165712039/model_final_162be9.pkl)
 
 ## Usage Guide
 
@@ -71,7 +71,7 @@ Thanks to:
 - [Gonzalo Vidal](https://www.tiktok.com/@_gonzavidal) for the sample videos.
 - [Sylvain Filoni](https://twitter.com/fffiloni) for the deployment of the Gradio Space in [Hugging Face](https://huggingface.co/spaces/fffiloni/video2densepose).
 - https://github.com/Flode-Labs
-- yolov8-https://docs.ultralytics.com/
+- [yolov8](https://docs.ultralytics.com/)
 
 It is just a copy-learning project.
 
