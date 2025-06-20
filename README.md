@@ -58,7 +58,7 @@ The script processes the input video and generates an output video with the draw
 You can also use the flask to run the web with an interface. To do so, run the following command:
 ```bash
 cd flaskk
-python app.py
+python server.py
 ```
 After it runs in linux command-line.
 You can open your browser and input your URL.
